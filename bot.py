@@ -11,8 +11,6 @@ import re
 from datetime import datetime, timezone
 
 # ─── Bot Configuration ────────────────────────────────────────────────────────
-API_ID = 340
-API_HASH = 'd066b01aa23dee31d883'
 BOT_TOKEN = '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc'
 OWNER_ID = 8836533598
 
