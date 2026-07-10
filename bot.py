@@ -10,32 +10,28 @@ import json
 import re
 from datetime import datetime, timezone
 
-# ─── Environment Variables ──────────────────────────────────────────────────
-API_ID    = int(os.environ.get('API_ID', 340))
-API_HASH  = os.environ.get('API_HASH', 'd066b01aa23dee31d883')
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc')
-OWNER_ID  = int(os.environ.get('OWNER_ID', 8836533598))
-
-if not BOT_TOKEN:
-    raise ValueError("❌ BOT_TOKEN environment variable is not set!")
+# ─── Bot Configuration ────────────────────────────────────────────────────────
+API_ID = 340
+API_HASH = 'd066b01aa23dee31d883'
+BOT_TOKEN = '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc'
+OWNER_ID = 8836533598
 
 # ─── Direct API endpoint ───────────────────────────────────────────────────────
-CHECKER_API_BASE = os.environ.get('CHECKER_API_BASE', 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key=xebec')
+CHECKER_API_BASE = 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key=xebec'
 
 # ─── Channel / Group join requirement ─────────────────────────────────────────
-CHANNEL_USERNAME = os.environ.get('CHANNEL_USERNAME', 'exportbot01')
-GROUP_USERNAME   = os.environ.get('GROUP_USERNAME', 'AutoShopifys')
-CHANNEL_LINK     = os.environ.get('CHANNEL_LINK', 'https://t.me/exportbot01')
-GROUP_LINK       = os.environ.get('GROUP_LINK', 'https://t.me/AutoShopifys')
+CHANNEL_USERNAME = 'exportbot01'
+GROUP_USERNAME   = 'AutoShopifys'
+CHANNEL_LINK     = 'https://t.me/exportbot01'
+GROUP_LINK       = 'https://t.me/AutoShopifys'
 
-# ─── File paths with data directory support ──────────────────────────────────
-DATA_DIR = os.environ.get('DATA_DIR', '.')
-PREMIUM_FILE = os.path.join(DATA_DIR, 'premium.txt')
-ADMINS_FILE  = os.path.join(DATA_DIR, 'admins.txt')
-BANNED_FILE  = os.path.join(DATA_DIR, 'banned.txt')
-KEYS_FILE    = os.path.join(DATA_DIR, 'keys.txt')
-SITES_FILE   = os.path.join(DATA_DIR, 'sites.txt')
-PROXY_FILE   = os.path.join(DATA_DIR, 'proxy.txt')
+# ─── File paths ───────────────────────────────────────────────────────────────
+PREMIUM_FILE = 'premium.txt'
+ADMINS_FILE  = 'admins.txt'
+BANNED_FILE  = 'banned.txt'
+KEYS_FILE    = 'keys.txt'
+SITES_FILE   = 'sites.txt'
+PROXY_FILE   = 'proxy.txt'
 
 # ─── Initialize bot ──────────────────────────────────────────────────────────
 bot = TelegramClient('checker_bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
@@ -67,7 +63,6 @@ _DEAD_INDICATORS = (
 #  FILE HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 def get_file_lines(filepath):
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     if not os.path.exists(filepath):
         return []
     try:
@@ -86,13 +81,11 @@ def is_owner(user_id):  return user_id == OWNER_ID
 def is_banned(user_id): return str(user_id) in load_banned()
 
 def append_line(filepath, line):
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'a', encoding='utf-8') as f:
         f.write(f"{line}\n")
 
 def remove_line(filepath, value):
     lines = get_file_lines(filepath)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, 'w', encoding='utf-8') as f:
         for l in lines:
             if l != str(value):
@@ -116,7 +109,6 @@ def _read_premium_entries():
     return data
 
 def _write_premium_entries(data):
-    os.makedirs(os.path.dirname(PREMIUM_FILE), exist_ok=True)
     with open(PREMIUM_FILE, 'w', encoding='utf-8') as f:
         for uid, exp in data.items():
             f.write(f"{uid}|{exp}\n")
@@ -1118,7 +1110,6 @@ async def remove_single_proxy(event):
     if proxy_to_remove not in current_proxies:
         await event.reply(premium_emoji(f"❌ Proxy not found: <code>{proxy_to_remove}</code>"), parse_mode='html'); return
     new_proxies = [p for p in current_proxies if p != proxy_to_remove]
-    os.makedirs(os.path.dirname(PROXY_FILE), exist_ok=True)
     with open(PROXY_FILE, 'w') as f:
         for p in new_proxies: f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Proxy Removed!</b>\n\n<code>{proxy_to_remove}</code>"), parse_mode='html')
@@ -1141,7 +1132,6 @@ async def remove_proxy_by_index(event):
         else: new_proxies.append(p)
     if not removed:
         await event.reply(premium_emoji("❌ No valid indices found."), parse_mode='html'); return
-    os.makedirs(os.path.dirname(PROXY_FILE), exist_ok=True)
     with open(PROXY_FILE, 'w') as f:
         for p in new_proxies: f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Removed {len(removed)} proxies!</b>"), parse_mode='html')
@@ -1163,7 +1153,6 @@ async def clear_all_proxies(event):
                       file=backup_filename, parse_mode='html')
     try: os.remove(backup_filename)
     except: pass
-    os.makedirs(os.path.dirname(PROXY_FILE), exist_ok=True)
     with open(PROXY_FILE, 'w') as f: f.write("")
 
 @bot.on(events.NewMessage(pattern=r'^/getproxy$'))
@@ -1201,7 +1190,6 @@ async def add_proxy_command(event):
     new_proxies     = [p for p in proxies_to_add if p not in current_proxies]
     if not new_proxies:
         await event.reply(premium_emoji("⚠️ All provided proxies already exist."), parse_mode='html'); return
-    os.makedirs(os.path.dirname(PROXY_FILE), exist_ok=True)
     with open(PROXY_FILE, 'a') as f:
         for p in new_proxies: f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Added {len(new_proxies)} proxies!</b>"), parse_mode='html')
@@ -1225,7 +1213,6 @@ async def proxy_command(event):
             f"🔥 Checking...\n\nChecked: {len(alive_proxies)+len(dead_proxies)}/{len(proxies)}\n"
             f"Alive: {len(alive_proxies)} | Dead: {len(dead_proxies)}"
         ), parse_mode='html')
-    os.makedirs(os.path.dirname(PROXY_FILE), exist_ok=True)
     with open(PROXY_FILE, 'w') as f:
         for p in alive_proxies: f.write(f"{p}\n")
     await status_msg.edit(premium_emoji(
@@ -1249,7 +1236,6 @@ async def remove_site_command(event):
     if url_to_remove not in current_sites:
         await event.reply(premium_emoji(f"❌ Site not found: <code>{url_to_remove}</code>"), parse_mode='html'); return
     new_sites = [s for s in current_sites if s != url_to_remove]
-    os.makedirs(os.path.dirname(SITES_FILE), exist_ok=True)
     with open(SITES_FILE, 'w') as f:
         for s in new_sites: f.write(f"{s}\n")
     await event.reply(premium_emoji(f"✅ <b>Site Removed!</b>\n\n<code>{url_to_remove}</code>"), parse_mode='html')
@@ -1278,7 +1264,6 @@ async def site_command(event):
             f"🔥 Checking sites...\n\nChecked: {len(alive_sites)+len(dead_sites)}/{len(sites)}\n"
             f"Alive: {len(alive_sites)} | Dead: {len(dead_sites)}"
         ), parse_mode='html')
-    os.makedirs(os.path.dirname(SITES_FILE), exist_ok=True)
     with open(SITES_FILE, 'w') as f:
         for s in alive_sites: f.write(f"{s}\n")
     await status_msg.edit(premium_emoji(
