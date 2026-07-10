@@ -9,22 +9,6 @@ import time
 import json
 import re
 from datetime import datetime, timezone
-from flask import Flask
-import threading
-
-# ─── Flask Web Server for Railway Healthcheck ──────────────────────────────
-app = Flask(__name__)
-
-@app.route('/')
-@app.route('/health')
-def health():
-    return "OK", 200
-
-def run_flask():
-    app.run(host='0.0.0.0', port=3000)
-
-# Start Flask in background thread
-threading.Thread(target=run_flask, daemon=True).start()
 
 # ─── Direct API endpoint ───────────────────────────────────────────────────────
 CHECKER_API_BASE = 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key=xebec'
@@ -66,7 +50,7 @@ CF_DRIP   = '<tg-emoji emoji-id="5345941618623005800">💧</tg-emoji>'
 CF_CARD2  = '<tg-emoji emoji-id="5980995951160987855">💳</tg-emoji>'
 CF_CHAT   = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
 
-# ─── Premium emoji IDs for premium_emoji() text replacer ──────────────────────
+# ─── Premium emoji IDs ──────────────────────────────────────────────────────
 PREMIUM_EMOJI_IDS = {
     "⚡": "5226656353744862682",
     "🏅": "5278622189556354905",
@@ -231,7 +215,6 @@ def remove_premium(user_id):
 # ══════════════════════════════════════════════════════════════════════════════
 async def is_member(user_id):
     try:
-        # Extract channel username from link
         channel_username = CHANNEL_LINK.split('/')[-1]
         p = await bot.get_permissions(channel_username, user_id)
         return p is not None
@@ -1069,7 +1052,7 @@ async def feedback_command(event):
         parse_mode='html'
     )
 
-    # Send feedback to owner directly (since group is removed)
+    # Send feedback to owner
     group_caption = (
         f"{CF_GHOST} <b>𝗕𝗼𝘁 𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸</b>\n\n"
         f"{CF_HAT} 𝗕𝗼𝘁: {bot_name}\n"
