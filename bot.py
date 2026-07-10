@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 # ─── Environment Variables ──────────────────────────────────────────────────
 API_ID    = int(os.environ.get('API_ID', 340))
 API_HASH  = os.environ.get('API_HASH', 'd066b01aa23dee31d883')
-BOT_TOKEN = os.environ.get('BOT TOKEN', 8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc)
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc')
 OWNER_ID  = int(os.environ.get('OWNER_ID', 8836533598))
 
 if not BOT_TOKEN:
