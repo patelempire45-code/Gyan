@@ -10,26 +10,100 @@ import json
 import re
 from datetime import datetime, timezone
 
-# ─── Bot Configuration ────────────────────────────────────────────────────────
-BOT_TOKEN = '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc'
-OWNER_ID = 8836533598
-
 # ─── Direct API endpoint ───────────────────────────────────────────────────────
 CHECKER_API_BASE = 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key=xebec'
 
 # ─── Channel / Group join requirement ─────────────────────────────────────────
 CHANNEL_USERNAME = 'exportbot01'
-GROUP_USERNAME = 'AutoShopifys'
-CHANNEL_LINK = 'https://t.me/exportbot01'
-GROUP_LINK = 'https://t.me/AutoShopifys'
+GROUP_USERNAME   = 'AutoShopifys'
+CHANNEL_LINK     = 'https://t.me/exportbot01'
+GROUP_LINK       = 'https://t.me/AutoShopifys'
+
+# ─── Bot owner ────────────────────────────────────────────────────────────────
+OWNER_ID = 8836533598
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CUSTOM EMOJI CONSTANTS  (used directly in messages)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# /ran progress emojis (from first set of photos)
+CE_MOON  = '<tg-emoji emoji-id="5195033767969839232">🌑</tg-emoji>'
+CE_STAR  = '<tg-emoji emoji-id="5084974483685507801">⭐</tg-emoji>'
+CE_CARD  = '<tg-emoji emoji-id="5472250091332993630">💳</tg-emoji>'
+CE_CASH  = '<tg-emoji emoji-id="5226656353744862682">💵</tg-emoji>'
+CE_GRAY  = '<tg-emoji emoji-id="5278622189556354905">⬛</tg-emoji>'
+CE_REDX  = '<tg-emoji emoji-id="5042112436648281096">🔴</tg-emoji>'
+CE_MASK  = '<tg-emoji emoji-id="5215327832040811010">🎭</tg-emoji>'
+CE_ANIME = '<tg-emoji emoji-id="5958417144877160497">👤</tg-emoji>'
+
+# Feedback success reply emojis
+CE_CHECK    = '<tg-emoji emoji-id="5895671830210940904">✅</tg-emoji>'
+CE_CHAT     = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
+CE_GHOST    = '<tg-emoji emoji-id="5855207143724027916">👾</tg-emoji>'
+CE_MONEYBAG = '<tg-emoji emoji-id="5348503265967355284">💰</tg-emoji>'
+CE_FLAME2   = '<tg-emoji emoji-id="5345941618623005800">🔥</tg-emoji>'
+
+# My Profile emojis (photo 1)
+CE_CROWN  = '<tg-emoji emoji-id="5321304384838057247">👑</tg-emoji>'
+CE_FLAME3 = '<tg-emoji emoji-id="5980995951160987855">🔥</tg-emoji>'
+CE_WTB    = '<tg-emoji emoji-id="5226656353744862682">💠</tg-emoji>'
+
+# Group Feedback message emojis (photo 2 IDs)
+CF_GHOST  = '<tg-emoji emoji-id="5040036030414062506">👾</tg-emoji>'
+CF_HAT    = '<tg-emoji emoji-id="5134452506935427991">🎩</tg-emoji>'
+CF_SHIELD = '<tg-emoji emoji-id="5197288647275071607">🛡</tg-emoji>'
+CF_STAR   = '<tg-emoji emoji-id="5084974483685507801">⭐</tg-emoji>'
+CF_DRIP   = '<tg-emoji emoji-id="5345941618623005800">💧</tg-emoji>'
+CF_CARD2  = '<tg-emoji emoji-id="5980995951160987855">💳</tg-emoji>'
+CF_CHAT   = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
+
+# ─── Premium emoji IDs for premium_emoji() text replacer ──────────────────────
+PREMIUM_EMOJI_IDS = {
+    "⚡": "5226656353744862682",
+    "🏅": "5278622189556354905",
+    "✅": "5084974483685507801",
+    "🔥": "5195033767969839232",
+    "🔑": "4902715076873553054",
+    "⚠️": "5172739056592749710",
+    "❌": "5361696340348779794",
+    "💳": "5980995951160987855",
+    "💠": "5253652327734192243",
+    "🤖": "5134452506935427991",
+    "🛑": "5042112436648281096",
+    "📝": "5852670420074893746",
+    "🌐": "5042101437237036298",
+    "🎯": "5854784287013867183",
+    "🚀": "6025929752982852543",
+    "💎": "5321304384838057247",
+}
+
+def premium_emoji(text):
+    """Replace Unicode emojis with <tg-emoji> tags for general messages."""
+    if not text:
+        return text
+    placeholders = []
+    result = text
+    for i, (emoji, doc_id) in enumerate(PREMIUM_EMOJI_IDS.items()):
+        ph = f"\x00PE{i:02d}\x00"
+        placeholders.append((ph, doc_id, emoji))
+        result = result.replace(emoji, ph)
+    for ph, doc_id, emoji in placeholders:
+        result = result.replace(ph, f'<tg-emoji emoji-id="{doc_id}">{emoji}</tg-emoji>')
+    return result
+
+# ─── Bot Configuration ────────────────────────────────────────────────────────
+API_ID    = 39649019
+API_HASH  = '0331b07302fd29c67933d43fc57c929f'
+BOT_TOKEN = '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc'
 
 # ─── File paths ───────────────────────────────────────────────────────────────
+# premium.txt format: user_id|expiry_unix_timestamp  (9999999999 = permanent)
 PREMIUM_FILE = 'premium.txt'
-ADMINS_FILE = 'admins.txt'
-BANNED_FILE = 'banned.txt'
-KEYS_FILE = 'keys.txt'
-SITES_FILE = 'sites.txt'
-PROXY_FILE = 'proxy.txt'
+ADMINS_FILE  = 'admins.txt'
+BANNED_FILE  = 'banned.txt'
+KEYS_FILE    = 'keys.txt'
+SITES_FILE   = 'sites.txt'
+PROXY_FILE   = 'proxy.txt'
 
 # ─── Initialize bot ──────────────────────────────────────────────────────────
 bot = TelegramClient('checker_bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
@@ -90,7 +164,7 @@ def remove_line(filepath, value):
                 f.write(f"{l}\n")
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  PREMIUM EXPIRY SYSTEM
+#  PREMIUM EXPIRY SYSTEM  (premium.txt: "user_id|expiry_timestamp")
 # ══════════════════════════════════════════════════════════════════════════════
 PERMANENT_EXPIRY = 9_999_999_999
 
@@ -286,66 +360,7 @@ async def check_card_with_retry(card, sites, proxies, max_retries=2):
     return {'status':'Dead','message':'Max retries','card':card,'gateway':'Unknown','price':'-'}
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  CUSTOM EMOJI CONSTANTS
-# ══════════════════════════════════════════════════════════════════════════════
-CE_MOON  = '<tg-emoji emoji-id="5195033767969839232">🌑</tg-emoji>'
-CE_STAR  = '<tg-emoji emoji-id="5084974483685507801">⭐</tg-emoji>'
-CE_CARD  = '<tg-emoji emoji-id="5472250091332993630">💳</tg-emoji>'
-CE_CASH  = '<tg-emoji emoji-id="5226656353744862682">💵</tg-emoji>'
-CE_GRAY  = '<tg-emoji emoji-id="5278622189556354905">⬛</tg-emoji>'
-CE_REDX  = '<tg-emoji emoji-id="5042112436648281096">🔴</tg-emoji>'
-CE_MASK  = '<tg-emoji emoji-id="5215327832040811010">🎭</tg-emoji>'
-CE_ANIME = '<tg-emoji emoji-id="5958417144877160497">👤</tg-emoji>'
-CE_CHECK = '<tg-emoji emoji-id="5895671830210940904">✅</tg-emoji>'
-CE_CHAT  = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
-CE_GHOST = '<tg-emoji emoji-id="5855207143724027916">👾</tg-emoji>'
-CE_MONEYBAG = '<tg-emoji emoji-id="5348503265967355284">💰</tg-emoji>'
-CE_FLAME2 = '<tg-emoji emoji-id="5345941618623005800">🔥</tg-emoji>'
-CE_CROWN = '<tg-emoji emoji-id="5321304384838057247">👑</tg-emoji>'
-CE_FLAME3 = '<tg-emoji emoji-id="5980995951160987855">🔥</tg-emoji>'
-CE_WTB = '<tg-emoji emoji-id="5226656353744862682">💠</tg-emoji>'
-CF_GHOST = '<tg-emoji emoji-id="5040036030414062506">👾</tg-emoji>'
-CF_HAT = '<tg-emoji emoji-id="5134452506935427991">🎩</tg-emoji>'
-CF_SHIELD = '<tg-emoji emoji-id="5197288647275071607">🛡</tg-emoji>'
-CF_STAR = '<tg-emoji emoji-id="5084974483685507801">⭐</tg-emoji>'
-CF_DRIP = '<tg-emoji emoji-id="5345941618623005800">💧</tg-emoji>'
-CF_CARD2 = '<tg-emoji emoji-id="5980995951160987855">💳</tg-emoji>'
-CF_CHAT = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
-
-PREMIUM_EMOJI_IDS = {
-    "⚡": "5226656353744862682",
-    "🏅": "5278622189556354905",
-    "✅": "5084974483685507801",
-    "🔥": "5195033767969839232",
-    "🔑": "4902715076873553054",
-    "⚠️": "5172739056592749710",
-    "❌": "5361696340348779794",
-    "💳": "5980995951160987855",
-    "💠": "5253652327734192243",
-    "🤖": "5134452506935427991",
-    "🛑": "5042112436648281096",
-    "📝": "5852670420074893746",
-    "🌐": "5042101437237036298",
-    "🎯": "5854784287013867183",
-    "🚀": "6025929752982852543",
-    "💎": "5321304384838057247",
-}
-
-def premium_emoji(text):
-    if not text:
-        return text
-    placeholders = []
-    result = text
-    for i, (emoji, doc_id) in enumerate(PREMIUM_EMOJI_IDS.items()):
-        ph = f"\x00PE{i:02d}\x00"
-        placeholders.append((ph, doc_id, emoji))
-        result = result.replace(emoji, ph)
-    for ph, doc_id, emoji in placeholders:
-        result = result.replace(ph, f'<tg-emoji emoji-id="{doc_id}">{emoji}</tg-emoji>')
-    return result
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  /ran — REALTIME HIT & PROGRESS
+#  /ran — REALTIME HIT
 # ══════════════════════════════════════════════════════════════════════════════
 async def send_realtime_hit(user_id, result, hit_type, username):
     emoji       = "✅" if hit_type == "Charged" else "🔥"
@@ -370,6 +385,9 @@ async def send_realtime_hit(user_id, result, hit_type, username):
     except Exception:
         pass
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  /ran — PROGRESS UPDATE
+# ══════════════════════════════════════════════════════════════════════════════
 def _ran_progress_text(results, current_count, username, user_id):
     total      = results['total']
     charged    = len(results['charged'])
@@ -399,6 +417,9 @@ async def update_progress(user_id, message_id, results, current_count, username,
     except Exception:
         pass
 
+# ══════════════════════════════════════════════════════════════════════════════
+#  /ran — FINAL RESULTS
+# ══════════════════════════════════════════════════════════════════════════════
 async def send_final_results(user_id, results, username):
     elapsed   = int(time.time() - results['start_time'])
     h, m, s   = elapsed // 3600, (elapsed % 3600) // 60, elapsed % 60
@@ -487,7 +508,7 @@ async def test_site(site, proxy):
         return {'site': site, 'status': 'dead'}
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  MAIN MENU
+#  MAIN MENU helper
 # ══════════════════════════════════════════════════════════════════════════════
 MAIN_MENU_BUTTONS = [
     [Button.inline("📋 𝗖𝗠𝗗𝗦", b"cmds"), Button.inline("🌐 𝗦𝗲𝘁 𝗣𝗿𝗼𝘅𝘆", b"setproxy")],
@@ -613,6 +634,7 @@ async def myprofile_cb(event):
     prem_plan = get_premium_remaining_str(user_id) if prem else None
     proxies   = load_proxies()
 
+    # Build plan line
     if prem:
         plan_line = f"{CE_WTB} 𝗣𝗹𝗮𝗻: {CE_GRAY} <b>Premium ({prem_plan})</b>\n"
     else:
@@ -829,7 +851,7 @@ async def single_cc_check(event):
         await status_msg.edit(premium_emoji(f"❌ Error: {e}"), parse_mode='html')
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /ran — random file check
+#  /ran — random file check (high-speed, 25 concurrent workers)
 # ══════════════════════════════════════════════════════════════════════════════
 @bot.on(events.NewMessage(pattern='/ran'))
 async def ran_command(event):
@@ -872,6 +894,7 @@ async def ran_command(event):
     total_cards = len(cards)
     starter_id  = user_id
 
+    # Start message
     start_text = (
         f"{CE_MOON} <b>𝗥𝗮𝗻𝗱𝗼𝗺 𝗙𝗶𝗹𝗲 𝗖𝗵𝗲𝗰𝗸 𝗦𝘁𝗮𝗿𝘁𝗲𝗱!</b>\n\n"
         f"{CE_STAR} 𝗧𝗼𝘁𝗮𝗹 𝗖𝗖𝘀: <b>{total_cards}</b>\n"
@@ -932,14 +955,17 @@ async def ran_command(event):
                 if res['status'] in ('Charged', 'Approved'):
                     await send_realtime_hit(user_id, res, res['status'], username)
                 queue.task_done()
+                # Update progress after EVERY card so Response is always visible
                 if session_key in active_sessions:
                     try:
                         await update_progress(user_id, status_msg.id, all_results,
                                               all_results['checked'], username, starter_id)
                     except Exception:
                         pass
+                # 2-second delay between cards — prevents empty API responses
                 await asyncio.sleep(2)
 
+        # 3 workers — slow and steady so API does not return empty responses
         workers = [asyncio.create_task(worker()) for _ in range(3)]
         while workers:
             if session_key not in active_sessions:
@@ -994,7 +1020,7 @@ async def stop_handler(event):
     await event.answer("🛑 Check stopped!")
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /f — FEEDBACK
+#  /f — FEEDBACK (photo required → sent to GROUP + pinned)
 # ══════════════════════════════════════════════════════════════════════════════
 FEEDBACK_USAGE_TEXT = (
     f"{CE_MOON} <b>𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗨𝘀𝗮𝗴𝗲</b>\n\n"
@@ -1014,6 +1040,7 @@ async def feedback_command(event):
     raw_text      = (event.message.text or event.message.message or "").strip()
     feedback_text = raw_text[2:].strip() if raw_text.lower().startswith('/f') else raw_text.strip()
 
+    # Find photo in this message or replied message
     photo_msg = None
     if event.message.media and hasattr(event.message.media, 'photo'):
         photo_msg = event.message
@@ -1026,6 +1053,7 @@ async def feedback_command(event):
         await event.reply(FEEDBACK_USAGE_TEXT, parse_mode='html')
         return
 
+    # Sender info
     try:
         sender   = await event.get_sender()
         username = f"@{sender.username}" if sender.username else "No username"
@@ -1033,14 +1061,17 @@ async def feedback_command(event):
     except Exception:
         username, name = str(user_id), "Unknown"
 
+    # Get bot info for the "Bot" field
     try:
         me       = await bot.get_me()
         bot_name = f"@{me.username}" if me.username else "Bot"
     except Exception:
         bot_name = "@Bot"
 
+    # Date in UTC
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
+    # Confirm to user immediately
     await event.reply(
         f"{CE_MONEYBAG} <b>𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗦𝗲𝗻𝘁 𝗦𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹𝗹𝘆!</b>\n\n"
         f"{CE_MOON} 𝗬𝗼𝘂𝗿 𝗳𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗵𝗮𝘀 𝗯𝗲𝗲𝗻 𝘀𝘂𝗯𝗺𝗶𝘁𝘁𝗲𝗱 𝘁𝗼 𝘁𝗵𝗲 𝗮𝗱𝗺𝗶𝗻𝘀.\n"
@@ -1048,6 +1079,7 @@ async def feedback_command(event):
         parse_mode='html'
     )
 
+    # Group feedback message using custom emojis from photo 2
     group_caption = (
         f"{CF_GHOST} <b>𝗕𝗼𝘁 𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸</b>\n\n"
         f"{CF_HAT} 𝗕𝗼𝘁: {bot_name}\n"
@@ -1060,6 +1092,7 @@ async def feedback_command(event):
         f"{CF_CHAT} 𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 𝗯𝘆: <a href=\"tg://user?id={OWNER_ID}\">Ukraine</a>"
     )
 
+    # Send to group and pin
     try:
         sent_msg = await bot.send_file(
             GROUP_USERNAME,
@@ -1067,11 +1100,13 @@ async def feedback_command(event):
             caption=group_caption,
             parse_mode='html'
         )
+        # Pin the message in the group
         try:
             await bot.pin_message(GROUP_USERNAME, sent_msg.id, notify=False)
         except Exception:
             pass
     except Exception as e:
+        # Fallback: try sending to owner if group fails
         try:
             await bot.send_file(OWNER_ID, file=photo_msg.media, caption=group_caption, parse_mode='html')
         except Exception:
@@ -1108,8 +1143,8 @@ async def remove_single_proxy(event):
     if proxy_to_remove not in current_proxies:
         await event.reply(premium_emoji(f"❌ Proxy not found: <code>{proxy_to_remove}</code>"), parse_mode='html'); return
     new_proxies = [p for p in current_proxies if p != proxy_to_remove]
-    with open(PROXY_FILE, 'w') as f:
-        for p in new_proxies: f.write(f"{p}\n")
+    async with aiofiles.open(PROXY_FILE, 'w') as f:
+        for p in new_proxies: await f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Proxy Removed!</b>\n\n<code>{proxy_to_remove}</code>"), parse_mode='html')
 
 @bot.on(events.NewMessage(pattern=r'^/rmproxyindex\s+'))
@@ -1130,8 +1165,8 @@ async def remove_proxy_by_index(event):
         else: new_proxies.append(p)
     if not removed:
         await event.reply(premium_emoji("❌ No valid indices found."), parse_mode='html'); return
-    with open(PROXY_FILE, 'w') as f:
-        for p in new_proxies: f.write(f"{p}\n")
+    async with aiofiles.open(PROXY_FILE, 'w') as f:
+        for p in new_proxies: await f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Removed {len(removed)} proxies!</b>"), parse_mode='html')
 
 @bot.on(events.NewMessage(pattern=r'^/clearproxy$'))
@@ -1151,7 +1186,7 @@ async def clear_all_proxies(event):
                       file=backup_filename, parse_mode='html')
     try: os.remove(backup_filename)
     except: pass
-    with open(PROXY_FILE, 'w') as f: f.write("")
+    async with aiofiles.open(PROXY_FILE, 'w') as f: await f.write("")
 
 @bot.on(events.NewMessage(pattern=r'^/getproxy$'))
 async def get_all_proxies(event):
@@ -1188,8 +1223,8 @@ async def add_proxy_command(event):
     new_proxies     = [p for p in proxies_to_add if p not in current_proxies]
     if not new_proxies:
         await event.reply(premium_emoji("⚠️ All provided proxies already exist."), parse_mode='html'); return
-    with open(PROXY_FILE, 'a') as f:
-        for p in new_proxies: f.write(f"{p}\n")
+    async with aiofiles.open(PROXY_FILE, 'a') as f:
+        for p in new_proxies: await f.write(f"{p}\n")
     await event.reply(premium_emoji(f"✅ <b>Added {len(new_proxies)} proxies!</b>"), parse_mode='html')
 
 @bot.on(events.NewMessage(pattern=r'^/proxy$'))
@@ -1211,8 +1246,8 @@ async def proxy_command(event):
             f"🔥 Checking...\n\nChecked: {len(alive_proxies)+len(dead_proxies)}/{len(proxies)}\n"
             f"Alive: {len(alive_proxies)} | Dead: {len(dead_proxies)}"
         ), parse_mode='html')
-    with open(PROXY_FILE, 'w') as f:
-        for p in alive_proxies: f.write(f"{p}\n")
+    async with aiofiles.open(PROXY_FILE, 'w') as f:
+        for p in alive_proxies: await f.write(f"{p}\n")
     await status_msg.edit(premium_emoji(
         f"✅ <b>Proxy Check Done!</b>\n\nTotal: {len(proxies)} | Alive: {len(alive_proxies)} | Removed: {len(dead_proxies)}"
     ), parse_mode='html')
@@ -1234,8 +1269,8 @@ async def remove_site_command(event):
     if url_to_remove not in current_sites:
         await event.reply(premium_emoji(f"❌ Site not found: <code>{url_to_remove}</code>"), parse_mode='html'); return
     new_sites = [s for s in current_sites if s != url_to_remove]
-    with open(SITES_FILE, 'w') as f:
-        for s in new_sites: f.write(f"{s}\n")
+    async with aiofiles.open(SITES_FILE, 'w') as f:
+        for s in new_sites: await f.write(f"{s}\n")
     await event.reply(premium_emoji(f"✅ <b>Site Removed!</b>\n\n<code>{url_to_remove}</code>"), parse_mode='html')
 
 @bot.on(events.NewMessage(pattern=r'^/site$'))
@@ -1262,8 +1297,8 @@ async def site_command(event):
             f"🔥 Checking sites...\n\nChecked: {len(alive_sites)+len(dead_sites)}/{len(sites)}\n"
             f"Alive: {len(alive_sites)} | Dead: {len(dead_sites)}"
         ), parse_mode='html')
-    with open(SITES_FILE, 'w') as f:
-        for s in alive_sites: f.write(f"{s}\n")
+    async with aiofiles.open(SITES_FILE, 'w') as f:
+        for s in alive_sites: await f.write(f"{s}\n")
     await status_msg.edit(premium_emoji(
         f"✅ <b>Site Check Done!</b>\n\nTotal: {len(sites)} | Alive: {len(alive_sites)} | Removed: {len(dead_sites)}"
     ), parse_mode='html')
