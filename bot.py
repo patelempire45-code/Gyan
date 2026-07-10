@@ -21,17 +21,17 @@ CHECKER_API_BASE = 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key
 
 # ─── Channel / Group join requirement ─────────────────────────────────────────
 CHANNEL_USERNAME = 'exportbot01'
-GROUP_USERNAME   = 'AutoShopifys'
-CHANNEL_LINK     = 'https://t.me/exportbot01'
-GROUP_LINK       = 'https://t.me/AutoShopifys'
+GROUP_USERNAME = 'AutoShopifys'
+CHANNEL_LINK = 'https://t.me/exportbot01'
+GROUP_LINK = 'https://t.me/AutoShopifys'
 
 # ─── File paths ───────────────────────────────────────────────────────────────
 PREMIUM_FILE = 'premium.txt'
-ADMINS_FILE  = 'admins.txt'
-BANNED_FILE  = 'banned.txt'
-KEYS_FILE    = 'keys.txt'
-SITES_FILE   = 'sites.txt'
-PROXY_FILE   = 'proxy.txt'
+ADMINS_FILE = 'admins.txt'
+BANNED_FILE = 'banned.txt'
+KEYS_FILE = 'keys.txt'
+SITES_FILE = 'sites.txt'
+PROXY_FILE = 'proxy.txt'
 
 # ─── Initialize bot ──────────────────────────────────────────────────────────
 bot = TelegramClient('checker_bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
