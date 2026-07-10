@@ -9,24 +9,36 @@ import time
 import json
 import re
 from datetime import datetime, timezone
+from flask import Flask
+import threading
+
+# ─── Flask Web Server for Railway Healthcheck ──────────────────────────────
+app = Flask(__name__)
+
+@app.route('/')
+@app.route('/health')
+def health():
+    return "OK", 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=3000)
+
+# Start Flask in background thread
+threading.Thread(target=run_flask, daemon=True).start()
 
 # ─── Direct API endpoint ───────────────────────────────────────────────────────
 CHECKER_API_BASE = 'https://stripe-auto-dsam.onrender.com/gateway=autostripe/key=xebec'
 
-# ─── Channel / Group join requirement ─────────────────────────────────────────
-CHANNEL_USERNAME = 'exportbot01'
-GROUP_USERNAME   = 'AutoShopifys'
-CHANNEL_LINK     = 'https://t.me/exportbot01'
-GROUP_LINK       = 'https://t.me/AutoShopifys'
+# ─── Channel join requirement (ONLY CHANNEL) ────────────────────────────────
+CHANNEL_LINK = 'https://t.me/+uJ4vAXPkw11mOWQ1'
 
 # ─── Bot owner ────────────────────────────────────────────────────────────────
 OWNER_ID = 8836533598
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  CUSTOM EMOJI CONSTANTS  (used directly in messages)
+#  CUSTOM EMOJI CONSTANTS
 # ══════════════════════════════════════════════════════════════════════════════
 
-# /ran progress emojis (from first set of photos)
 CE_MOON  = '<tg-emoji emoji-id="5195033767969839232">🌑</tg-emoji>'
 CE_STAR  = '<tg-emoji emoji-id="5084974483685507801">⭐</tg-emoji>'
 CE_CARD  = '<tg-emoji emoji-id="5472250091332993630">💳</tg-emoji>'
@@ -36,19 +48,16 @@ CE_REDX  = '<tg-emoji emoji-id="5042112436648281096">🔴</tg-emoji>'
 CE_MASK  = '<tg-emoji emoji-id="5215327832040811010">🎭</tg-emoji>'
 CE_ANIME = '<tg-emoji emoji-id="5958417144877160497">👤</tg-emoji>'
 
-# Feedback success reply emojis
 CE_CHECK    = '<tg-emoji emoji-id="5895671830210940904">✅</tg-emoji>'
 CE_CHAT     = '<tg-emoji emoji-id="5303138782004924588">💬</tg-emoji>'
 CE_GHOST    = '<tg-emoji emoji-id="5855207143724027916">👾</tg-emoji>'
 CE_MONEYBAG = '<tg-emoji emoji-id="5348503265967355284">💰</tg-emoji>'
 CE_FLAME2   = '<tg-emoji emoji-id="5345941618623005800">🔥</tg-emoji>'
 
-# My Profile emojis (photo 1)
 CE_CROWN  = '<tg-emoji emoji-id="5321304384838057247">👑</tg-emoji>'
 CE_FLAME3 = '<tg-emoji emoji-id="5980995951160987855">🔥</tg-emoji>'
 CE_WTB    = '<tg-emoji emoji-id="5226656353744862682">💠</tg-emoji>'
 
-# Group Feedback message emojis (photo 2 IDs)
 CF_GHOST  = '<tg-emoji emoji-id="5040036030414062506">👾</tg-emoji>'
 CF_HAT    = '<tg-emoji emoji-id="5134452506935427991">🎩</tg-emoji>'
 CF_SHIELD = '<tg-emoji emoji-id="5197288647275071607">🛡</tg-emoji>'
@@ -78,7 +87,6 @@ PREMIUM_EMOJI_IDS = {
 }
 
 def premium_emoji(text):
-    """Replace Unicode emojis with <tg-emoji> tags for general messages."""
     if not text:
         return text
     placeholders = []
@@ -97,7 +105,6 @@ API_HASH  = '0331b07302fd29c67933d43fc57c929f'
 BOT_TOKEN = '8766840155:AAFJU4GU_ez5uVZTXoMO0bb7wcnYeQSpmFc'
 
 # ─── File paths ───────────────────────────────────────────────────────────────
-# premium.txt format: user_id|expiry_unix_timestamp  (9999999999 = permanent)
 PREMIUM_FILE = 'premium.txt'
 ADMINS_FILE  = 'admins.txt'
 BANNED_FILE  = 'banned.txt'
@@ -164,7 +171,7 @@ def remove_line(filepath, value):
                 f.write(f"{l}\n")
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  PREMIUM EXPIRY SYSTEM  (premium.txt: "user_id|expiry_timestamp")
+#  PREMIUM EXPIRY SYSTEM
 # ══════════════════════════════════════════════════════════════════════════════
 PERMANENT_EXPIRY = 9_999_999_999
 
@@ -220,19 +227,16 @@ def remove_premium(user_id):
     _write_premium_entries(data)
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  CHANNEL / GROUP MEMBERSHIP CHECK
+#  CHANNEL MEMBERSHIP CHECK (ONLY CHANNEL)
 # ══════════════════════════════════════════════════════════════════════════════
-async def is_member(user_id, entity_username):
+async def is_member(user_id):
     try:
-        p = await bot.get_permissions(entity_username, user_id)
+        # Extract channel username from link
+        channel_username = CHANNEL_LINK.split('/')[-1]
+        p = await bot.get_permissions(channel_username, user_id)
         return p is not None
     except Exception:
         return False
-
-async def check_membership(user_id):
-    ch = await is_member(user_id, CHANNEL_USERNAME)
-    gr = await is_member(user_id, GROUP_USERNAME)
-    return ch, gr
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  KEY SYSTEM
@@ -524,7 +528,7 @@ MAIN_MENU_TEXT = premium_emoji(
 )
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /start — channel/group gate
+#  /start — CHANNEL GATE (ONLY CHANNEL)
 # ══════════════════════════════════════════════════════════════════════════════
 @bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
@@ -534,16 +538,16 @@ async def start(event):
             "🛑 <b>𝗬𝗼𝘂 𝗮𝗿𝗲 𝗯𝗮𝗻𝗻𝗲𝗱 𝗳𝗿𝗼𝗺 𝘁𝗵𝗶𝘀 𝗯𝗼𝘁!</b>"
         ), parse_mode='html')
         return
-    in_ch, in_gr = await check_membership(user_id)
-    if not in_ch or not in_gr:
+    in_ch = await is_member(user_id)
+    if not in_ch:
         await event.reply(
             premium_emoji(
                 "⚠️ <b>Access Restricted</b>\n\n"
-                "⭐ You must join our channel and group to use this bot.\n\n"
-                "🔗 Tap the buttons below to join, then tap Verify."
+                "⭐ You must join our channel to use this bot.\n\n"
+                "🔗 Tap the button below to join, then tap Verify."
             ),
             buttons=[
-                [Button.url("Join Channel", CHANNEL_LINK), Button.url("Join Group", GROUP_LINK)],
+                [Button.url("Join Channel", CHANNEL_LINK)],
                 [Button.inline("✅ Verify Joined", b"verify_join")]
             ],
             parse_mode='html'
@@ -554,14 +558,11 @@ async def start(event):
 @bot.on(events.CallbackQuery(pattern=b"verify_join"))
 async def verify_join_cb(event):
     user_id = event.sender_id
-    in_ch, in_gr = await check_membership(user_id)
-    if in_ch and in_gr:
+    in_ch = await is_member(user_id)
+    if in_ch:
         await event.edit(MAIN_MENU_TEXT, buttons=MAIN_MENU_BUTTONS, parse_mode='html')
     else:
-        missing = []
-        if not in_ch: missing.append("Channel")
-        if not in_gr: missing.append("Group")
-        await event.answer(f"⚠️ Still not joined: {', '.join(missing)}", alert=True)
+        await event.answer("⚠️ Still not joined the channel!", alert=True)
 
 @bot.on(events.CallbackQuery(pattern=b"back_main"))
 async def back_main_cb(event):
@@ -634,7 +635,6 @@ async def myprofile_cb(event):
     prem_plan = get_premium_remaining_str(user_id) if prem else None
     proxies   = load_proxies()
 
-    # Build plan line
     if prem:
         plan_line = f"{CE_WTB} 𝗣𝗹𝗮𝗻: {CE_GRAY} <b>Premium ({prem_plan})</b>\n"
     else:
@@ -758,7 +758,7 @@ async def generate_keys(event):
     await event.reply(premium_emoji(msg), parse_mode='html')
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /redeem — blocks if premium already active
+#  /redeem
 # ══════════════════════════════════════════════════════════════════════════════
 @bot.on(events.NewMessage(pattern=r'^/redeem\s+(\S+)$'))
 async def redeem_key_cmd(event):
@@ -851,7 +851,7 @@ async def single_cc_check(event):
         await status_msg.edit(premium_emoji(f"❌ Error: {e}"), parse_mode='html')
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /ran — random file check (high-speed, 25 concurrent workers)
+#  /ran — random file check
 # ══════════════════════════════════════════════════════════════════════════════
 @bot.on(events.NewMessage(pattern='/ran'))
 async def ran_command(event):
@@ -894,7 +894,6 @@ async def ran_command(event):
     total_cards = len(cards)
     starter_id  = user_id
 
-    # Start message
     start_text = (
         f"{CE_MOON} <b>𝗥𝗮𝗻𝗱𝗼𝗺 𝗙𝗶𝗹𝗲 𝗖𝗵𝗲𝗰𝗸 𝗦𝘁𝗮𝗿𝘁𝗲𝗱!</b>\n\n"
         f"{CE_STAR} 𝗧𝗼𝘁𝗮𝗹 𝗖𝗖𝘀: <b>{total_cards}</b>\n"
@@ -921,10 +920,9 @@ async def ran_command(event):
     }
 
     try:
-        queue            = asyncio.Queue()
+        queue = asyncio.Queue()
         for card in cards: queue.put_nowait(card)
-        last_update_time = [time.time()]
-        lock             = asyncio.Lock()
+        lock = asyncio.Lock()
 
         async def worker():
             while not queue.empty() and session_key in active_sessions:
@@ -938,14 +936,14 @@ async def ran_command(event):
                     card = queue.get_nowait()
                 except asyncio.QueueEmpty:
                     break
-                cur_sites   = load_sites()
+                cur_sites = load_sites()
                 cur_proxies = load_proxies()
                 if not cur_sites or not cur_proxies: break
                 res = await check_card_with_retry(card, cur_sites, cur_proxies, max_retries=1)
                 async with lock:
                     all_results['checked'] += 1
                     all_results['last_response'] = res.get('message', '—')[:60]
-                    all_results['last_card']     = res.get('card', '')
+                    all_results['last_card'] = res.get('card', '')
                     if res['status'] == 'Charged':
                         all_results['charged'].append(res)
                     elif res['status'] == 'Approved':
@@ -955,17 +953,14 @@ async def ran_command(event):
                 if res['status'] in ('Charged', 'Approved'):
                     await send_realtime_hit(user_id, res, res['status'], username)
                 queue.task_done()
-                # Update progress after EVERY card so Response is always visible
                 if session_key in active_sessions:
                     try:
                         await update_progress(user_id, status_msg.id, all_results,
                                               all_results['checked'], username, starter_id)
                     except Exception:
                         pass
-                # 2-second delay between cards — prevents empty API responses
                 await asyncio.sleep(2)
 
-        # 3 workers — slow and steady so API does not return empty responses
         workers = [asyncio.create_task(worker()) for _ in range(3)]
         while workers:
             if session_key not in active_sessions:
@@ -997,7 +992,7 @@ async def stop_handler(event):
     if clicker_id != starter_id and not is_admin(clicker_id):
         await event.answer("⚠️ Only the person who started this check can stop it!", alert=True)
         return
-    message_id  = event.message_id
+    message_id = event.message_id
     session_key = None
     for k in list(active_sessions.keys()):
         if k.endswith(f"_{message_id}"):
@@ -1005,7 +1000,7 @@ async def stop_handler(event):
     if session_key and session_key in active_sessions:
         del active_sessions[session_key]
     try:
-        sender  = await event.get_sender()
+        sender = await event.get_sender()
         stopper = sender.username if sender.username else str(clicker_id)
     except Exception:
         stopper = str(clicker_id)
@@ -1020,7 +1015,7 @@ async def stop_handler(event):
     await event.answer("🛑 Check stopped!")
 
 # ══════════════════════════════════════════════════════════════════════════════
-#  /f — FEEDBACK (photo required → sent to GROUP + pinned)
+#  /f — FEEDBACK
 # ══════════════════════════════════════════════════════════════════════════════
 FEEDBACK_USAGE_TEXT = (
     f"{CE_MOON} <b>𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗨𝘀𝗮𝗴𝗲</b>\n\n"
@@ -1037,10 +1032,9 @@ async def feedback_command(event):
     if is_banned(user_id):
         await event.reply(banned_reply(), parse_mode='html'); return
 
-    raw_text      = (event.message.text or event.message.message or "").strip()
+    raw_text = (event.message.text or event.message.message or "").strip()
     feedback_text = raw_text[2:].strip() if raw_text.lower().startswith('/f') else raw_text.strip()
 
-    # Find photo in this message or replied message
     photo_msg = None
     if event.message.media and hasattr(event.message.media, 'photo'):
         photo_msg = event.message
@@ -1053,25 +1047,21 @@ async def feedback_command(event):
         await event.reply(FEEDBACK_USAGE_TEXT, parse_mode='html')
         return
 
-    # Sender info
     try:
-        sender   = await event.get_sender()
+        sender = await event.get_sender()
         username = f"@{sender.username}" if sender.username else "No username"
-        name     = (sender.first_name or '') + (' ' + sender.last_name if sender.last_name else '')
+        name = (sender.first_name or '') + (' ' + sender.last_name if sender.last_name else '')
     except Exception:
         username, name = str(user_id), "Unknown"
 
-    # Get bot info for the "Bot" field
     try:
-        me       = await bot.get_me()
+        me = await bot.get_me()
         bot_name = f"@{me.username}" if me.username else "Bot"
     except Exception:
         bot_name = "@Bot"
 
-    # Date in UTC
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
-    # Confirm to user immediately
     await event.reply(
         f"{CE_MONEYBAG} <b>𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗦𝗲𝗻𝘁 𝗦𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹𝗹𝘆!</b>\n\n"
         f"{CE_MOON} 𝗬𝗼𝘂𝗿 𝗳𝗲𝗲𝗱𝗯𝗮𝗰𝗸 𝗵𝗮𝘀 𝗯𝗲𝗲𝗻 𝘀𝘂𝗯𝗺𝗶𝘁𝘁𝗲𝗱 𝘁𝗼 𝘁𝗵𝗲 𝗮𝗱𝗺𝗶𝗻𝘀.\n"
@@ -1079,7 +1069,7 @@ async def feedback_command(event):
         parse_mode='html'
     )
 
-    # Group feedback message using custom emojis from photo 2
+    # Send feedback to owner directly (since group is removed)
     group_caption = (
         f"{CF_GHOST} <b>𝗕𝗼𝘁 𝗙𝗲𝗲𝗱𝗯𝗮𝗰𝗸</b>\n\n"
         f"{CF_HAT} 𝗕𝗼𝘁: {bot_name}\n"
@@ -1092,25 +1082,10 @@ async def feedback_command(event):
         f"{CF_CHAT} 𝗔𝗽𝗽𝗿𝗼𝘃𝗲𝗱 𝗯𝘆: <a href=\"tg://user?id={OWNER_ID}\">Ukraine</a>"
     )
 
-    # Send to group and pin
     try:
-        sent_msg = await bot.send_file(
-            GROUP_USERNAME,
-            file=photo_msg.media,
-            caption=group_caption,
-            parse_mode='html'
-        )
-        # Pin the message in the group
-        try:
-            await bot.pin_message(GROUP_USERNAME, sent_msg.id, notify=False)
-        except Exception:
-            pass
-    except Exception as e:
-        # Fallback: try sending to owner if group fails
-        try:
-            await bot.send_file(OWNER_ID, file=photo_msg.media, caption=group_caption, parse_mode='html')
-        except Exception:
-            pass
+        await bot.send_file(OWNER_ID, file=photo_msg.media, caption=group_caption, parse_mode='html')
+    except Exception:
+        pass
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  PROXY COMMANDS
@@ -1121,7 +1096,7 @@ async def check_single_proxy(event):
     if is_banned(user_id): await event.reply(banned_reply(), parse_mode='html'); return
     if not is_premium(user_id):
         await event.reply(premium_emoji("❌ <b>Access Denied</b>"), parse_mode='html'); return
-    proxy      = event.message.text.split(' ', 1)[1].strip()
+    proxy = event.message.text.split(' ', 1)[1].strip()
     status_msg = await event.reply(premium_emoji(f"🔄 Checking proxy: <code>{proxy}</code>..."), parse_mode='html')
     try:
         result = await test_proxy(proxy)
@@ -1178,7 +1153,7 @@ async def clear_all_proxies(event):
     current_proxies = load_proxies()
     if not current_proxies:
         await event.reply(premium_emoji("❌ proxy.txt is already empty."), parse_mode='html'); return
-    timestamp       = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_filename = f"proxy_backup_{user_id}_{timestamp}.txt"
     async with aiofiles.open(backup_filename, 'w') as f:
         for p in current_proxies: await f.write(f"{p}\n")
@@ -1202,7 +1177,7 @@ async def get_all_proxies(event):
         await event.reply(premium_emoji(f"<b>📋 All Proxies ({len(current_proxies)}):</b>\n\n{proxy_list}"), parse_mode='html')
     else:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename  = f"proxies_{user_id}_{timestamp}.txt"
+        filename = f"proxies_{user_id}_{timestamp}.txt"
         async with aiofiles.open(filename, 'w') as f:
             for i, p in enumerate(current_proxies): await f.write(f"{i+1}. {p}\n")
         await event.reply(premium_emoji(f"<b>📋 All Proxies ({len(current_proxies)}):</b>"), file=filename, parse_mode='html')
@@ -1218,9 +1193,9 @@ async def add_proxy_command(event):
     args = event.message.text.split('\n')
     if len(args) < 2:
         await event.reply(premium_emoji("❌ Usage: /addproxy followed by proxies, one per line."), parse_mode='html'); return
-    proxies_to_add  = [l.strip() for l in args[1:] if l.strip()]
+    proxies_to_add = [l.strip() for l in args[1:] if l.strip()]
     current_proxies = load_proxies()
-    new_proxies     = [p for p in proxies_to_add if p not in current_proxies]
+    new_proxies = [p for p in proxies_to_add if p not in current_proxies]
     if not new_proxies:
         await event.reply(premium_emoji("⚠️ All provided proxies already exist."), parse_mode='html'); return
     async with aiofiles.open(PROXY_FILE, 'a') as f:
@@ -1236,7 +1211,7 @@ async def proxy_command(event):
     proxies = load_proxies()
     if not proxies:
         await event.reply(premium_emoji("❌ proxy.txt is empty."), parse_mode='html'); return
-    status_msg    = await event.reply(premium_emoji(f"🔥 Checking {len(proxies)} proxies..."), parse_mode='html')
+    status_msg = await event.reply(premium_emoji(f"🔥 Checking {len(proxies)} proxies..."), parse_mode='html')
     alive_proxies, dead_proxies = [], []
     for i in range(0, len(proxies), 50):
         results = await asyncio.gather(*[test_proxy(p) for p in proxies[i:i+50]])
@@ -1279,18 +1254,18 @@ async def site_command(event):
     if is_banned(user_id): await event.reply(banned_reply(), parse_mode='html'); return
     if not is_premium(user_id):
         await event.reply(premium_emoji("❌ <b>Access Denied</b>"), parse_mode='html'); return
-    sites   = load_sites()
+    sites = load_sites()
     proxies = load_proxies()
     if not sites:
         await event.reply(premium_emoji("❌ sites.txt is empty."), parse_mode='html'); return
     if not proxies:
         await event.reply(premium_emoji("❌ No proxies available."), parse_mode='html'); return
-    status_msg  = await event.reply(premium_emoji(f"🔥 Checking {len(sites)} sites..."), parse_mode='html')
+    status_msg = await event.reply(premium_emoji(f"🔥 Checking {len(sites)} sites..."), parse_mode='html')
     alive_sites, dead_sites = [], []
     for i in range(0, len(sites), 10):
-        batch         = sites[i:i+10]
+        batch = sites[i:i+10]
         fresh_proxies = load_proxies() or proxies
-        results       = await asyncio.gather(*[test_site(s, random.choice(fresh_proxies)) for s in batch])
+        results = await asyncio.gather(*[test_site(s, random.choice(fresh_proxies)) for s in batch])
         for res in results:
             (alive_sites if res['status'] == 'alive' else dead_sites).append(res['site'])
         await status_msg.edit(premium_emoji(
